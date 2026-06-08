@@ -102,7 +102,7 @@ export default function Home() {
           "Suhaib Cabdi Jama", "Suhaib Ibrahim Haamuud", "Suhayb Abdirisaak Ahmed", 
           "Suldaan Maxamed Xasan", "Suhayb Xasan Mohamed", "Suldaan Yusuf Mohamed", 
           "Warsame Cabdillahi Quule", "Xuseen Muuxyadiin Jibriil", "Yahye Hussein Yousuf", 
-          "Yassin Mohamed Jama", "Yaxye Faysal Omer", "Yoonis Mohamed Jama"
+          "Yassin Mohamed Jama", "Yaxye Faysal Omer", "Yoonis Mohamed Jama", "fatxi Abdirisak Mohamed"
         ].map((studentName, index) => ({
           id: (index + 1).toString(),
           name: studentName,
@@ -120,7 +120,7 @@ export default function Home() {
   // 3. Admin Verification
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'password admin Aljazeera4200') {
+    if (password === 'Aljazeera4200') {
       setIsAdmin(true);
       setShowLoginModal(false);
       setPassword('');
