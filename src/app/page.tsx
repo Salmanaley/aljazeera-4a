@@ -45,11 +45,15 @@ export default function Home() {
 
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
-  // Image Slider Configuration
+  // Image Slider Configuration (8K/4K Nature Images from Unsplash)
   const [currentSlide, setCurrentSlide] = useState(0);
   const sliderImages = [
-    '/pic1.jpg', '/pic2.jpg', '/pic3.jpg', '/pic4.jpg', '/pic5.jpg',
-    '/pic6.jpg', '/pic7.jpg', '/pic8.jpg', '/pic9.jpg', '/pic10.jpg'
+    'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?q=80&w=3840&auto=format&fit=crop', // Buuro iyo harooyin
+    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=3840&auto=format&fit=crop', // Kayn dhexdeed
+    'https://images.unsplash.com/photo-1531366936337-77cf5e08ce5a?q=80&w=3840&auto=format&fit=crop', // Cirka habeenkii iyo xiddigaha
+    'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=3840&auto=format&fit=crop', // Badweynta
+    'https://images.unsplash.com/photo-1432405972618-c600f4b7cc22?q=80&w=3840&auto=format&fit=crop', // Biyo-dhac (Waterfall)
+    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=3840&auto=format&fit=crop'  // Daruuro iyo dabiici
   ];
 
   useEffect(() => {
@@ -61,7 +65,7 @@ export default function Home() {
     if (sliderImages.length === 0) return;
     const slideTimer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
-    }, 3000);
+    }, 4000); // Kordhiyey waqtiga si animation-ka loo dareemo
     return () => clearInterval(slideTimer);
   }, [sliderImages.length]);
 
@@ -94,20 +98,18 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
-  // 4. REALTIME DATA: Sug bixitaan la'aan ah oo toos ah (Sifaysan)
+  // REALTIME DATA: Firebase si toos ah
   useEffect(() => {
     const studentsRef = ref(db, 'students');
     
-    // Ka dhagayso Firebase si toos ah oo nadiif ah
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         const studentList: Student[] = Object.values(data);
-        // U nidaami si xarfaha magacyadu isku xigaan (A-Z)
         studentList.sort((a, b) => a.name.localeCompare(b.name));
         setStudents(studentList);
       } else {
-        // KALIYA haddii database-ku gabi ahaanba madhan yahay, shub liiska
+        // KALIYA haddii database-ku gabi ahaanba madhan yahay
         const initialClass = [
           "Abdifatah Idris Mohamed", "Abdikariin Cabdi Maxamed", "Abdikariin Faisal Mohamed", 
           "Abdijamiil Ahmed Sahal", "Abdinajib Abdikariim Awil", "Abdirahman Bashe Diriye", 
@@ -192,7 +194,6 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Firebase Realtime Reset
   const handleDeleteOrReset = (id: string) => {
     if (confirm('Ma hubaal miyaa inaad ardaygan xaaladdiisa lacagta ka saarayso?')) {
       const targetStudent = students.find(s => s.id === id);
@@ -202,7 +203,6 @@ export default function Home() {
     }
   };
 
-  // Halkan waxaan ka dhignay in qof kasta uu arko dhamaan ardayda si uusan bogguba u madoobaadeen
   const filteredStudents = students.filter(student => {
     return student.name.toLowerCase().includes(search.toLowerCase());
   });
@@ -229,6 +229,16 @@ export default function Home() {
       
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes fadeInUp3D { from { opacity: 0; transform: translateY(40px) rotateX(-15px); } to { opacity: 1; transform: translateY(0) rotateX(0); } }
+        
+        /* Animation-ka cusub ee sawirada nool ka dhigaya */
+        @keyframes kenBurns {
+          0% { transform: scale(1); }
+          100% { transform: scale(1.15); }
+        }
+        .animated-slide {
+          animation: kenBurns 10s alternate infinite ease-in-out;
+        }
+
         .animate-3d-card { animation: fadeInUp3D 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
         .student-row { transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
         .student-row:hover { transform: translateZ(15px) scale(1.01); background-color: ${darkMode ? 'rgba(59, 130, 246, 0.1) !important' : 'rgba(59, 130, 246, 0.05) !important'}; box-shadow: 0 10px 20px rgba(0, 229, 255, 0.15); }
@@ -276,10 +286,24 @@ export default function Home() {
 
       {/* IMAGE SLIDER */}
       <div className="animate-3d-card" style={{ maxWidth: '1100px', margin: '25px auto 0 auto', padding: '0 20px' }}>
-        <div style={{ width: '100%', height: '420px', borderRadius: '15px', overflow: 'hidden', border: `1px solid ${theme.border}`, boxShadow: '0 15px 35px rgba(0,0,0,0.4)', position: 'relative' }}>
-          <img src={sliderImages[currentSlide]} alt="Class Slides" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'all 0.6s ease-in-out' }} />
-          <button onClick={prevSlide} style={{ position: 'absolute', top: '50%', left: '15px', transform: 'translateY(-50%)', backgroundColor: 'rgba(2, 12, 27, 0.6)', color: 'white', border: 'none', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', zIndex: 10 }}>❮</button>
-          <button onClick={nextSlide} style={{ position: 'absolute', top: '50%', right: '15px', transform: 'translateY(-50%)', backgroundColor: 'rgba(2, 12, 27, 0.6)', color: 'white', border: 'none', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', zIndex: 10 }}>❯</button>
+        <div style={{ width: '100%', height: '420px', borderRadius: '15px', overflow: 'hidden', border: `1px solid ${theme.border}`, boxShadow: '0 15px 35px rgba(0,0,0,0.4)', position: 'relative', backgroundColor: '#000' }}>
+          
+          <img 
+            key={currentSlide} 
+            src={sliderImages[currentSlide]} 
+            alt="Nature Slide" 
+            className="animated-slide"
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              objectFit: 'cover', 
+              opacity: 0.9,
+              transition: 'opacity 1s ease-in-out' 
+            }} 
+          />
+
+          <button onClick={prevSlide} style={{ position: 'absolute', top: '50%', left: '15px', transform: 'translateY(-50%)', backgroundColor: 'rgba(2, 12, 27, 0.6)', color: 'white', border: 'none', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', zIndex: 10, backdropFilter: 'blur(4px)' }}>❮</button>
+          <button onClick={nextSlide} style={{ position: 'absolute', top: '50%', right: '15px', transform: 'translateY(-50%)', backgroundColor: 'rgba(2, 12, 27, 0.6)', color: 'white', border: 'none', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', zIndex: 10, backdropFilter: 'blur(4px)' }}>❯</button>
         </div>
       </div>
 
