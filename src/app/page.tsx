@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getDatabase, ref, onValue, set } from 'firebase/database';
 
-// Firebase Config-gaagii rasmiga ahaa oo dhammaystiran
+// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyAdv5VHdfIaGOHkaBa580nsxoW71BsvjOg",
   authDomain: "aljazeera-class.firebaseapp.com",
@@ -15,7 +15,6 @@ const firebaseConfig = {
   measurementId: "G-J2ZMX61RK2"
 };
 
-// Initialize Firebase (Habka Next.js u ammaan ah)
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const db = getDatabase(app);
 
@@ -31,7 +30,7 @@ export default function Home() {
   const [students, setStudents] = useState<Student[]>([]);
   const [search, setSearch] = useState('');
   const [darkMode, setDarkMode] = useState(true);
-  const [mounted, setMounted] = useState(false); // Xallinta Refresh Lag-ga
+  const [mounted, setMounted] = useState(false);
   
   // Admin Security
   const [isAdmin, setIsAdmin] = useState(false);
@@ -53,12 +52,11 @@ export default function Home() {
     '/pic6.jpg', '/pic7.jpg', '/pic8.jpg', '/pic9.jpg', '/pic10.jpg'
   ];
 
-  // 1. Hubi in boggu si buuxda ugu rarnay Browser-ka (Anti-Hydration Issue)
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // 2. Image Slider Auto Change (3 ilbiriqsi kasta)
+  // Image Slider Auto Change
   useEffect(() => {
     if (sliderImages.length === 0) return;
     const slideTimer = setInterval(() => {
@@ -75,7 +73,7 @@ export default function Home() {
     setCurrentSlide((prev) => (prev - 1 + sliderImages.length) % sliderImages.length);
   };
 
-  // 3. Realtime Countdown Timer (27 June 2026 @ 7:30 AM)
+  // Realtime Countdown Timer
   useEffect(() => {
     const targetDate = new Date('2026-06-27T07:30:00').getTime();
     const timer = setInterval(() => {
@@ -96,15 +94,20 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
-  // 4. REALTIME DATA: Ka soo dhoofso xogta Firebase
+  // 4. REALTIME DATA: Sug bixitaan la'aan ah oo toos ah (Sifaysan)
   useEffect(() => {
     const studentsRef = ref(db, 'students');
-    onValue(studentsRef, (snapshot) => {
+    
+    // Ka dhagayso Firebase si toos ah oo nadiif ah
+    const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         const studentList: Student[] = Object.values(data);
+        // U nidaami si xarfaha magacyadu isku xigaan (A-Z)
+        studentList.sort((a, b) => a.name.localeCompare(b.name));
         setStudents(studentList);
       } else {
+        // KALIYA haddii database-ku gabi ahaanba madhan yahay, shub liiska
         const initialClass = [
           "Abdifatah Idris Mohamed", "Abdikariin Cabdi Maxamed", "Abdikariin Faisal Mohamed", 
           "Abdijamiil Ahmed Sahal", "Abdinajib Abdikariim Awil", "Abdirahman Bashe Diriye", 
@@ -128,7 +131,7 @@ export default function Home() {
           "Saciid Maxamed Cumar", "Saleeban Xasan Ali", "Salmaan Ali Mohamed", 
           "Salmaan Mohamed Dahir", "Shamsudiin Mohamed Dahir", "Siciid Deeq Maxamuud", 
           "Suleiman Mohamed Aadan", "Sudaysi Mohamed Ali", "Suhaib Cabdi Jama", 
-          "Suhaib Cabdi Jama", "Suhaib Ibrahim Haamuud", "Suhayb Abdirisaak Ahmed", 
+          "Suhaib Ibrahim Haamuud", "Suhayb Abdirisaak Ahmed", 
           "Suldaan Maxamed Xasan", "Suhayb Xasan Mohamed", "Suldaan Yusuf Mohamed", 
           "Warsame Cabdillahi Quule", "Xuseen Muuxyadiin Jibriil", "Yahye Hussein Yousuf", 
           "Yassin Mohamed Jama", "Yaxye Faysal Omer", "Yoonis Mohamed Jama", "fatxi Abdirisak Mohamed"
@@ -144,9 +147,11 @@ export default function Home() {
         setStudents(initialClass);
       }
     });
+
+    return () => unsubscribe();
   }, []);
 
-  // 5. Admin Verification
+  // Admin Verification
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (password === 'Aljazeera4200') {
@@ -158,7 +163,7 @@ export default function Home() {
     }
   };
 
-  // 6. Firebase Realtime Write
+  // Firebase Realtime Write
   const handleSaveStudent = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
@@ -187,7 +192,7 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // 7. Firebase Realtime Reset
+  // Firebase Realtime Reset
   const handleDeleteOrReset = (id: string) => {
     if (confirm('Ma hubaal miyaa inaad ardaygan xaaladdiisa lacagta ka saarayso?')) {
       const targetStudent = students.find(s => s.id === id);
@@ -197,9 +202,9 @@ export default function Home() {
     }
   };
 
+  // Halkan waxaan ka dhignay in qof kasta uu arko dhamaan ardayda si uusan bogguba u madoobaadeen
   const filteredStudents = students.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(search.toLowerCase());
-    return isAdmin ? matchesSearch : (student.paid && matchesSearch);
+    return student.name.toLowerCase().includes(search.toLowerCase());
   });
 
   const theme = {
@@ -211,11 +216,10 @@ export default function Home() {
     inputBg: darkMode ? '#020C1B' : '#F1F5F9'
   };
 
-  // Loading Screen inta uu browser-ku isku dhabaynayo xogta
   if (!mounted) {
     return (
       <div style={{ backgroundColor: '#020C1B', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#3B82F6', fontFamily: 'sans-serif' }}>
-        <h3>Sug fudud... Xogta ayaa la soo rarayaa ⏳</h3>
+        <h3>Fadlan sug... Xogta fasalka ayaa la soo dhoofinayaa ⏳</h3>
       </div>
     );
   }
@@ -241,7 +245,7 @@ export default function Home() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <input
               type="text"
-              placeholder={isAdmin ? "Raadi arday kasta..." : "Raadi magaca ardayga..."}
+              placeholder="Raadi magaca ardayga..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               style={{ backgroundColor: theme.inputBg, color: theme.text, border: `1px solid ${theme.border}`, padding: '8px 15px', borderRadius: '8px', fontSize: '14px', outline: 'none', width: '240px' }}
@@ -270,38 +274,12 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* 10 IMAGE 3D SLIDER SECTION (SAACADA HOOSTEDA) */}
-      {/* ========================================================================= */}
+      {/* IMAGE SLIDER */}
       <div className="animate-3d-card" style={{ maxWidth: '1100px', margin: '25px auto 0 auto', padding: '0 20px' }}>
-        <div style={{ relative: 'true', width: '100%', height: '420px', borderRadius: '15px', overflow: 'hidden', border: `1px solid ${theme.border}`, boxShadow: '0 15px 35px rgba(0,0,0,0.4)', position: 'relative' }}>
-          
-          <img 
-            src={sliderImages[currentSlide]} 
-            alt={`Slide ${currentSlide + 1}`} 
-            style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'all 0.6s ease-in-out' }} 
-          />
-
-          {/* Controls Bidix */}
-          <button onClick={prevSlide} style={{ position: 'absolute', top: '50%', left: '15px', transform: 'translateY(-50%)', backgroundColor: 'rgba(2, 12, 27, 0.6)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: '0.2s', zIndex: 10 }}>
-            ❮
-          </button>
-
-          {/* Controls Midig */}
-          <button onClick={nextSlide} style={{ position: 'absolute', top: '50%', right: '15px', transform: 'translateY(-50%)', backgroundColor: 'rgba(2, 12, 27, 0.6)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: '0.2s', zIndex: 10 }}>
-            ❯
-          </button>
-
-          {/* Indicators Dots */}
-          <div style={{ position: 'absolute', bottom: '15px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px', zIndex: 10 }}>
-            {sliderImages.map((_, index) => (
-              <div 
-                key={index} 
-                onClick={() => setCurrentSlide(index)}
-                style={{ width: currentSlide === index ? '24px' : '8px', height: '8px', borderRadius: '4px', backgroundColor: currentSlide === index ? '#3B82F6' : 'rgba(255,255,255,0.4)', cursor: 'pointer', transition: 'all 0.3s ease' }} 
-              />
-            ))}
-          </div>
+        <div style={{ width: '100%', height: '420px', borderRadius: '15px', overflow: 'hidden', border: `1px solid ${theme.border}`, boxShadow: '0 15px 35px rgba(0,0,0,0.4)', position: 'relative' }}>
+          <img src={sliderImages[currentSlide]} alt="Class Slides" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'all 0.6s ease-in-out' }} />
+          <button onClick={prevSlide} style={{ position: 'absolute', top: '50%', left: '15px', transform: 'translateY(-50%)', backgroundColor: 'rgba(2, 12, 27, 0.6)', color: 'white', border: 'none', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', zIndex: 10 }}>❮</button>
+          <button onClick={nextSlide} style={{ position: 'absolute', top: '50%', right: '15px', transform: 'translateY(-50%)', backgroundColor: 'rgba(2, 12, 27, 0.6)', color: 'white', border: 'none', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', zIndex: 10 }}>❯</button>
         </div>
       </div>
 
@@ -311,85 +289,63 @@ export default function Home() {
         {/* FOOMKA ADMIN-KA */}
         {isAdmin && (
           <div style={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, padding: '25px', borderRadius: '12px', marginBottom: '30px' }}>
-            <h2 style={{ margin: '0 0 15px 0', fontSize: '16px', fontWeight: 'bold', color: '#60A5FA' }}>{editingId ? 'Wax ka beddel Xogta Ardayga' : 'Calaamadee Arday Cusub Oo Bixiyey'}</h2>
+            <h2 style={{ margin: '0 0 15px 0', fontSize: '16px', fontWeight: 'bold', color: '#60A5FA' }}>{editingId ? 'Wax ka beddel Xogta Ardayga' : 'Calaamadee Arday Cusub'}</h2>
             <form onSubmit={handleSaveStudent} style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'end' }}>
               <div style={{ flex: '1 1 200px' }}>
-                <label style={{ display: 'block', fontSize: '12px', marginBottom: '5px', color: theme.textMuted }}>Magaca Dhan</label>
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Magaca ardayga..." style={{ width: '100%', padding: '10px', borderRadius: '6px', border: `1px solid ${theme.border}`, backgroundColor: theme.inputBg, color: theme.text }} required />
               </div>
               <div style={{ flex: '1 1 150px' }}>
-                <label style={{ display: 'block', fontSize: '12px', marginBottom: '5px', color: theme.textMuted }}>Nooca Lacagta</label>
                 <select value={payType} onChange={(e) => { setPayType(e.target.value); setAmount(e.target.value === 'ZAAD' ? '2$' : '20,000 Shilling'); }} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: `1px solid ${theme.border}`, backgroundColor: theme.inputBg, color: theme.text }}>
                   <option value="ZAAD">ZAAD</option>
                   <option value="Cash">Cash</option>
                 </select>
               </div>
               <div style={{ flex: '1 1 150px' }}>
-                <label style={{ display: 'block', fontSize: '12px', marginBottom: '5px', color: theme.textMuted }}>Lacagta</label>
-                <select value={amount} onChange={(e) => setAmount(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: `1px solid ${theme.border}`, backgroundColor: theme.inputBg, color: theme.text }}>
-                  {payType === 'ZAAD' ? (
-                    <option value="2$">2$</option>
-                  ) : (
-                    <option value="20,000 Shilling">20,000 Shilling</option>
-                  )}
-                </select>
-              </div>
-              <div style={{ flex: '1 1 150px' }}>
-                <button type="submit" style={{ width: '100%', padding: '11px', borderRadius: '6px', border: 'none', backgroundColor: '#1E40AF', color: '#FFFFFF', fontWeight: 'bold', cursor: 'pointer' }}>
-                  {editingId ? '💾 Update Realtime' : '✓ Approve Realtime'}
-                </button>
+                <button type="submit" style={{ width: '100%', padding: '11px', borderRadius: '6px', border: 'none', backgroundColor: '#1E40AF', color: '#FFFFFF', fontWeight: 'bold', cursor: 'pointer' }}>💾 Save Changes</button>
               </div>
             </form>
           </div>
         )}
 
-        {/* SHAXDA */}
+        {/* SHAXDA XOGTA */}
         <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', borderLeft: '4px solid #1E40AF', paddingLeft: '10px' }}>
-          {isAdmin ? "Maamulka Fasalka (Dhammaan Ardayda)" : "Natiijada Ardayda Bixisay Lacagta (LQI)"}
+          Liiska Natiijada & Xaaladda Lacagaha (Form 4A)
         </h2>
 
-        <div style={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.3)' }}>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
-              <thead>
-                <tr style={{ backgroundColor: darkMode ? '#020C1B' : '#F1F5F9', borderBottom: `1px solid ${theme.border}`, color: theme.textMuted }}>
-                  <th style={{ padding: '18px 15px' }}>Magaca Ardayga</th>
-                  <th style={{ padding: '18px 15px', textAlign: 'center' }}>Xaaladda</th>
-                  <th style={{ padding: '18px 15px' }}>Nooca Lacagta</th>
-                  <th style={{ padding: '18px 15px', textAlign: 'right' }}>Cadadka</th>
-                  {isAdmin && <th style={{ padding: '18px 15px', textAlign: 'center' }}>Maamul</th>}
+        <div style={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: '12px', overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+            <thead>
+              <tr style={{ backgroundColor: darkMode ? '#020C1B' : '#F1F5F9', borderBottom: `1px solid ${theme.border}`, color: theme.textMuted, textAlign: 'left' }}>
+                <th style={{ padding: '18px 15px' }}>Magaca Ardayga</th>
+                <th style={{ padding: '18px 15px', textAlign: 'center' }}>Xaaladda Lacagta</th>
+                <th style={{ padding: '18px 15px' }}>Nooca</th>
+                <th style={{ padding: '18px 15px', textAlign: 'right' }}>Cadadka</th>
+                {isAdmin && <th style={{ padding: '18px 15px', textAlign: 'center' }}>Maamul</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredStudents.map((student) => (
+                <tr className="student-row" key={student.id} style={{ borderBottom: `1px solid ${theme.border}` }}>
+                  <td style={{ padding: '16px 15px', fontWeight: '500' }}>{student.name}</td>
+                  <td style={{ padding: '16px 15px', textAlign: 'center' }}>
+                    {student.paid ? (
+                      <span style={{ backgroundColor: 'rgba(34,197,94,0.15)', color: '#4ADE80', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}>✓ Bixiyey</span>
+                    ) : (
+                      <span style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#EF4444', padding: '4px 10px', borderRadius: '12px', fontSize: '12px' }}>❌ Ma Bixin</span>
+                    )}
+                  </td>
+                  <td style={{ padding: '16px 15px', color: theme.textMuted }}>{student.paid ? student.paymentType : '-'}</td>
+                  <td style={{ padding: '16px 15px', textAlign: 'right', fontWeight: 'bold', color: student.paid ? '#4ADE80' : theme.textMuted }}>{student.paid ? student.amount : '-'}</td>
+                  {isAdmin && (
+                    <td style={{ padding: '16px 15px', textAlign: 'center' }}>
+                      <button onClick={() => startEdit(student)} style={{ backgroundColor: '#F59E0B', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', marginRight: '5px', cursor: 'pointer' }}>✏️ Sax</button>
+                      <button onClick={() => handleDeleteOrReset(student.id)} style={{ backgroundColor: '#EF4444', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }}>❌ Ka Saar</button>
+                    </td>
+                  )}
                 </tr>
-              </thead>
-              <tbody>
-                {filteredStudents.length > 0 ? (
-                  filteredStudents.map((student) => (
-                    <tr className="student-row" key={student.id} style={{ borderBottom: `1px solid ${theme.border}`, opacity: (!student.paid && isAdmin) ? 0.4 : 1 }}>
-                      <td style={{ padding: '16px 15px', fontWeight: '500' }}>{student.name}</td>
-                      <td style={{ padding: '16px 15px', textAlign: 'center' }}>
-                        {student.paid ? (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(34,197,94,0.15)', color: '#4ADE80', borderRadius: '50%', width: '26px', height: '26px', fontSize: '12px', fontWeight: 'bold' }}>✓</span>
-                        ) : (
-                          <span style={{ color: '#EF4444', fontSize: '12px', backgroundColor: 'rgba(239,68,68,0.15)', padding: '2px 6px', borderRadius: '4px' }}>Weli ma bixin</span>
-                        )}
-                      </td>
-                      <td style={{ padding: '16px 15px', color: theme.textMuted }}>{student.paid ? student.paymentType : '-'}</td>
-                      <td style={{ padding: '16px 15px', textAlign: 'right', fontWeight: 'bold', color: student.paid ? '#4ADE80' : theme.textMuted }}>{student.paid ? student.amount : '-'}</td>
-                      {isAdmin && (
-                        <td style={{ padding: '16px 15px', textAlign: 'center' }}>
-                          <button onClick={() => startEdit(student)} style={{ backgroundColor: '#F59E0B', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', marginRight: '5px', cursor: 'pointer' }}>✏️ Sax</button>
-                          <button onClick={() => handleDeleteOrReset(student.id)} style={{ backgroundColor: '#EF4444', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }}>❌ Ka Saar</button>
-                        </td>
-                      )}
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={isAdmin ? 5 : 4} style={{ padding: '40px', textAlign: 'center', color: theme.textMuted }}>Arday magacaas leh lama helin.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       </main>
 
