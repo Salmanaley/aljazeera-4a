@@ -7,7 +7,7 @@ import { getDatabase, ref, onValue, set } from 'firebase/database';
 const firebaseConfig = {
   apiKey: "AIzaSyAdv5VHdfIaGOHkaBa580nsxoW71BsvjOg",
   authDomain: "aljazeera-class.firebaseapp.com",
-  databaseURL: "https://aljazeera-class-default-rtdb.firebaseio.com", // Toos ugu xidhan Realtime Database-kaaga
+  databaseURL: "https://aljazeera-class-default-rtdb.firebaseio.com", 
   projectId: "aljazeera-class",
   storageBucket: "aljazeera-class.firebasestorage.app",
   messagingSenderId: "330534272238",
@@ -31,6 +31,7 @@ export default function Home() {
   const [students, setStudents] = useState<Student[]>([]);
   const [search, setSearch] = useState('');
   const [darkMode, setDarkMode] = useState(true);
+  const [mounted, setMounted] = useState(false); // Xallinta Refresh Lag-ga
   
   // Admin Security
   const [isAdmin, setIsAdmin] = useState(false);
@@ -45,7 +46,36 @@ export default function Home() {
 
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
-  // 1. Realtime Countdown Timer (27 June 2026 @ 7:30 AM)
+  // Image Slider Configuration
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const sliderImages = [
+    '/pic1.jpg', '/pic2.jpg', '/pic3.jpg', '/pic4.jpg', '/pic5.jpg',
+    '/pic6.jpg', '/pic7.jpg', '/pic8.jpg', '/pic9.jpg', '/pic10.jpg'
+  ];
+
+  // 1. Hubi in boggu si buuxda ugu rarnay Browser-ka (Anti-Hydration Issue)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // 2. Image Slider Auto Change (3 ilbiriqsi kasta)
+  useEffect(() => {
+    if (sliderImages.length === 0) return;
+    const slideTimer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
+    }, 3000);
+    return () => clearInterval(slideTimer);
+  }, [sliderImages.length]);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + sliderImages.length) % sliderImages.length);
+  };
+
+  // 3. Realtime Countdown Timer (27 June 2026 @ 7:30 AM)
   useEffect(() => {
     const targetDate = new Date('2026-06-27T07:30:00').getTime();
     const timer = setInterval(() => {
@@ -66,7 +96,7 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
-  // 2. REALTIME DATA: Ka soo dhoofso xogta Firebase
+  // 4. REALTIME DATA: Ka soo dhoofso xogta Firebase
   useEffect(() => {
     const studentsRef = ref(db, 'students');
     onValue(studentsRef, (snapshot) => {
@@ -75,7 +105,6 @@ export default function Home() {
         const studentList: Student[] = Object.values(data);
         setStudents(studentList);
       } else {
-        // Marka ugu horreysa ee database-ku madhan yahay, ku shub 78-da arday
         const initialClass = [
           "Abdifatah Idris Mohamed", "Abdikariin Cabdi Maxamed", "Abdikariin Faisal Mohamed", 
           "Abdijamiil Ahmed Sahal", "Abdinajib Abdikariim Awil", "Abdirahman Bashe Diriye", 
@@ -117,7 +146,7 @@ export default function Home() {
     });
   }, []);
 
-  // 3. Admin Verification
+  // 5. Admin Verification
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (password === 'Aljazeera4200') {
@@ -129,7 +158,7 @@ export default function Home() {
     }
   };
 
-  // 4. Firebase Realtime Write
+  // 6. Firebase Realtime Write
   const handleSaveStudent = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
@@ -158,7 +187,7 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // 5. Firebase Realtime Reset
+  // 7. Firebase Realtime Reset
   const handleDeleteOrReset = (id: string) => {
     if (confirm('Ma hubaal miyaa inaad ardaygan xaaladdiisa lacagta ka saarayso?')) {
       const targetStudent = students.find(s => s.id === id);
@@ -181,6 +210,15 @@ export default function Home() {
     border: darkMode ? '#1E293B' : '#E2E8F0',
     inputBg: darkMode ? '#020C1B' : '#F1F5F9'
   };
+
+  // Loading Screen inta uu browser-ku isku dhabaynayo xogta
+  if (!mounted) {
+    return (
+      <div style={{ backgroundColor: '#020C1B', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#3B82F6', fontFamily: 'sans-serif' }}>
+        <h3>Sug fudud... Xogta ayaa la soo rarayaa ⏳</h3>
+      </div>
+    );
+  }
 
   return (
     <div style={{ backgroundColor: theme.bg, color: theme.text, minHeight: '100vh', transition: 'all 0.3s ease', fontFamily: 'sans-serif', paddingBottom: '60px', perspective: '1000px' }}>
@@ -228,6 +266,41 @@ export default function Home() {
             <div><span style={{ display: 'block', fontSize: '36px' }}>{timeLeft.minutes}</span><span style={{ fontSize: '11px', color: theme.textMuted }}>Daqiiqo</span></div>
             <div>:</div>
             <div><span style={{ display: 'block', fontSize: '36px', color: '#00E5FF' }}>{timeLeft.seconds}</span><span style={{ fontSize: '11px', color: theme.textMuted }}>Ilbiriqsi</span></div>
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 10 IMAGE 3D SLIDER SECTION (SAACADA HOOSTEDA) */}
+      {/* ========================================================================= */}
+      <div className="animate-3d-card" style={{ maxWidth: '1100px', margin: '25px auto 0 auto', padding: '0 20px' }}>
+        <div style={{ relative: 'true', width: '100%', height: '420px', borderRadius: '15px', overflow: 'hidden', border: `1px solid ${theme.border}`, boxShadow: '0 15px 35px rgba(0,0,0,0.4)', position: 'relative' }}>
+          
+          <img 
+            src={sliderImages[currentSlide]} 
+            alt={`Slide ${currentSlide + 1}`} 
+            style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'all 0.6s ease-in-out' }} 
+          />
+
+          {/* Controls Bidix */}
+          <button onClick={prevSlide} style={{ position: 'absolute', top: '50%', left: '15px', transform: 'translateY(-50%)', backgroundColor: 'rgba(2, 12, 27, 0.6)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: '0.2s', zIndex: 10 }}>
+            ❮
+          </button>
+
+          {/* Controls Midig */}
+          <button onClick={nextSlide} style={{ position: 'absolute', top: '50%', right: '15px', transform: 'translateY(-50%)', backgroundColor: 'rgba(2, 12, 27, 0.6)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: '0.2s', zIndex: 10 }}>
+            ❯
+          </button>
+
+          {/* Indicators Dots */}
+          <div style={{ position: 'absolute', bottom: '15px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px', zIndex: 10 }}>
+            {sliderImages.map((_, index) => (
+              <div 
+                key={index} 
+                onClick={() => setCurrentSlide(index)}
+                style={{ width: currentSlide === index ? '24px' : '8px', height: '8px', borderRadius: '4px', backgroundColor: currentSlide === index ? '#3B82F6' : 'rgba(255,255,255,0.4)', cursor: 'pointer', transition: 'all 0.3s ease' }} 
+              />
+            ))}
           </div>
         </div>
       </div>
